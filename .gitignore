@@ -1,0 +1,26 @@
+# .NET build output
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+TestResults/
+
+# Rider
+.idea/
+
+# React / Node
+**/node_modules/
+**/dist/
+coverage/
+*.log
+
+# Local environment
+.env
+.env.local
+.env.*.local
+appsettings.Local.json
+
+# Operating system
+.DS_Store
+Thumbs.db
