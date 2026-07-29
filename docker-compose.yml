@@ -7,11 +7,11 @@ services:
       POSTGRES_USER: producthub
       POSTGRES_PASSWORD: 123456
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - producthub_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U producthub_user -d producthub"]
+      test: ["CMD-SHELL", "pg_isready -U producthub -d producthub"]
       interval: 5s
       timeout: 5s
       retries: 10
