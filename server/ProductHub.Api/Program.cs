@@ -1,5 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using ProductHub.Api.Data;
+using ProductHub.Api.Domain;
+using ProductHub.Api.Common.Exceptions;
+using Npgsql;
+using ProductHub.Api.Features.Categories;
+using ProductHub.Api.Features.Products;
 
 // Vai trò: Tạo một đối tượng builder để thiết lập ứng dụng.
 // Hoạt động: Tự động nạp toàn bộ cấu hình từ các file (appsettings.json), biến môi trường, và tham số dòng lệnh (args).
@@ -11,6 +16,9 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddProblemDetails();
 
+builder.Services.AddScoped<IProductService,ProductService>();
+
+builder.Services.AddScoped<ICategoryService,CategoryService>();
 /* 
 Đăng ký AppDbContext với DI container, sử dụng PostgreSQL
 Sau này controller hoặc service yêu cầu ví dụ: public productservice(AppDbContext dbContext) thì DI container sẽ inject vào, 

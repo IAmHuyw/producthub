@@ -11,6 +11,7 @@ public sealed record ProductResponse(
     bool IsActive,
     int CategoryId,
     string CategoryName,
-    DateTime CreatedAtUtc);
+    DateTime CreatedAtUtc,
+    DateTime? UpdatedAtUtc);
 
 //Cái này là class dùng để trả về thông tin sản phẩm, có các thuộc tính như Id, Name, Sku, Description, Price, StockQuantity, IsActive, CategoryId, CategoryName và CreatedAtUtc.
