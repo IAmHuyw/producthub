@@ -69,3 +69,5 @@ public sealed class CategoriesController(
             : NotFound();
     }
 }
+// controller này sẽ nhận các request từ client, gọi service để xử lý nghiệp vụ, và trả về response cho client.
+// controller này chỉ biết các interface của service, không biết implementation cụ thể, điều này giúp tách biệt các layer và dễ dàng thay đổi implementation sau này.

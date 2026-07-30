@@ -23,3 +23,5 @@ public interface IProductService
         int id,
         CancellationToken cancellationToken);
 }
+
+// interface này định nghĩa các phương thức mà service sẽ cung cấp, bao gồm các phương thức để lấy danh sách sản phẩm, lấy sản phẩm theo id, tạo mới sản phẩm, cập nhật sản phẩm và vô hiệu hóa sản phẩm.

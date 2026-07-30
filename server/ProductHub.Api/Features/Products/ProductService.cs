@@ -267,3 +267,4 @@ public sealed class ProductService(
             };
     }
 }
+// service này sẽ kế thừa interface IProductService, và implement các phương thức để xử lý nghiệp vụ liên quan đến sản phẩm, như GetAllAsync, GetByIdAsync, CreateAsync, UpdateAsync, DeactivateAsync. Service này sẽ tương tác với database thông qua AppDbContext để thực hiện các thao tác CRUD trên bảng Products.
