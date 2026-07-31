@@ -11,6 +11,7 @@ public sealed class ProductService(
     ILogger<ProductService> logger)
     : IProductService
 {
+    // Phương thức GetAllAsync sẽ truy vấn danh sách sản phẩm từ cơ sở dữ liệu dựa trên các tiêu chí trong ProductQuery, bao gồm tìm kiếm theo tên hoặc SKU, lọc theo categoryId, sắp xếp theo giá hoặc tên, và phân trang. Kết quả trả về là một PagedResult<ProductResponse> chứa danh sách sản phẩm và thông tin phân trang.
     public async Task<PagedResult<ProductResponse>>
         GetAllAsync(
             ProductQuery query,
@@ -83,7 +84,7 @@ public sealed class ProductService(
             query.PageSize,
             totalCount);
     }
-
+    // Phương thức GetByIdAsync sẽ tìm kiếm sản phẩm theo id, nếu tìm thấy thì trả về ProductResponse, nếu không tìm thấy thì trả về null.
     public async Task<ProductResponse?> GetByIdAsync(
         int id,
         CancellationToken cancellationToken)
@@ -105,7 +106,7 @@ public sealed class ProductService(
                 x.UpdatedAtUtc))
             .FirstOrDefaultAsync(cancellationToken);
     }
-
+    // Phương thức CreateAsync sẽ kiểm tra xem categoryId có tồn tại hay không, nếu không tồn tại thì ném ra NotFoundException. Sau đó kiểm tra xem SKU đã tồn tại hay chưa, nếu đã tồn tại thì ném ra ConflictException. Nếu tất cả đều hợp lệ, nó sẽ tạo một đối tượng Product mới, thêm vào DbContext và lưu thay đổi vào cơ sở dữ liệu. Cuối cùng ghi log thông tin và trả về ProductResponse của sản phẩm vừa tạo.
     public async Task<ProductResponse> CreateAsync(
         CreateProductRequest request,
         CancellationToken cancellationToken)
@@ -177,7 +178,7 @@ public sealed class ProductService(
             ?? throw new InvalidOperationException(
                 "Created product could not be loaded.");
     }
-
+    // Phương thức UpdateAsync sẽ tìm kiếm sản phẩm theo id, nếu không tìm thấy thì trả về false. Nếu tìm thấy, nó sẽ kiểm tra xem categoryId mới có tồn tại hay không, nếu không tồn tại thì ném ra NotFoundException. Sau đó cập nhật các thuộc tính của sản phẩm và lưu thay đổi vào cơ sở dữ liệu. Cuối cùng ghi log thông tin và trả về true để xác nhận rằng sản phẩm đã được cập nhật thành công.
     public async Task<bool> UpdateAsync(
         int id,
         UpdateProductRequest request,
@@ -223,7 +224,7 @@ public sealed class ProductService(
 
         return true;
     }
-
+    // Phương thức DeactivateAsync sẽ tìm kiếm sản phẩm theo id, nếu không tìm thấy thì trả về false. Nếu sản phẩm đã bị vô hiệu hóa, trả về true. Nếu sản phẩm còn hoạt động, nó sẽ đặt IsActive thành false, cập nhật thời gian UpdatedAtUtc, lưu thay đổi vào cơ sở dữ liệu và ghi log thông tin. Cuối cùng trả về true để xác nhận rằng sản phẩm đã được vô hiệu hóa thành công.
     public async Task<bool> DeactivateAsync(
         int id,
         CancellationToken cancellationToken)
@@ -255,7 +256,7 @@ public sealed class ProductService(
 
         return true;
     }
-
+    // Phương thức này kiểm tra xem một ngoại lệ DbUpdateException có phải là do vi phạm ràng buộc duy nhất trong cơ sở dữ liệu hay không.
     private static bool IsUniqueViolation(
         DbUpdateException exception)
     {
