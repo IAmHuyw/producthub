@@ -17,6 +17,7 @@ coverage/
 
 # Local environment
 .env
+.env.development
 .env.local
 .env.*.local
 appsettings.Local.json
