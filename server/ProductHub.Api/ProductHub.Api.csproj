@@ -9,11 +9,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- API là composition root nên được phép reference Application và Infrastructure để đăng ký DI. -->
+    <ProjectReference Include="../ProductHub.Application/ProductHub.Application.csproj" />
+    <ProjectReference Include="../ProductHub.Infrastructure/ProductHub.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

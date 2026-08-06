@@ -1,6 +1,6 @@
 @ProductHub.Api_HostAddress = http://localhost:5182
 
-GET {{ProductHub.Api_HostAddress}}/weatherforecast/
+GET {{ProductHub.Api_HostAddress}}/api/categories
 Accept: application/json
 
 ###
