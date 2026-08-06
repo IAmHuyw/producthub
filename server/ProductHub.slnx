@@ -1,3 +1,6 @@
 <Solution>
+  <Project Path="ProductHub.Domain/ProductHub.Domain.csproj" />
+  <Project Path="ProductHub.Application/ProductHub.Application.csproj" />
+  <Project Path="ProductHub.Infrastructure/ProductHub.Infrastructure.csproj" />
   <Project Path="ProductHub.Api/ProductHub.Api.csproj" />
 </Solution>

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Application chứa use case/port và cố ý không phụ thuộc EF Core hoặc ASP.NET Core. -->
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../ProductHub.Domain/ProductHub.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
