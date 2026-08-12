@@ -8,6 +8,12 @@ namespace ProductHub.Domain.Entities;
 // Nhờ vậy, giá luôn > 0 và số lượng tồn luôn >= 0, bất kể Entity được gọi từ API, worker hay test.
 public sealed class Product
 {
+    // Các giới hạn này thuộc Domain, vì Product có thể được tạo từ API, worker hoặc test.
+    // API DataAnnotations và Fluent API của EF Core tham chiếu cùng giá trị để không bị lệch rule.
+    public const int MaxNameLength = 120;
+    public const int MaxSkuLength = 50;
+    public const int MaxDescriptionLength = 1000;
+
     private Product()
     {
         // EF Core gọi constructor này khi materialize Product từ database.
@@ -77,12 +83,27 @@ public sealed class Product
         int categoryId,
         DateTime createdAtUtc)
     {
-        Validate(name, sku, price, stockQuantity, categoryId);
+        // Normalize trước rồi mới validate/lưu để state trong Entity luôn nhất quán,
+        // kể cả khi Entity được tạo từ một caller không đi qua HTTP API.
+        var normalizedName = NormalizeRequiredText(
+            name,
+            MaxNameLength,
+            "Product name is required.",
+            "Product name");
+        var normalizedSku = NormalizeRequiredText(
+            sku,
+            MaxSkuLength,
+            "Product SKU is required.",
+            "Product SKU")
+            .ToUpperInvariant();
+        var normalizedDescription = NormalizeDescription(description);
+
+        Validate(price, stockQuantity, categoryId);
 
         return new Product(
-            name,
-            sku,
-            description,
+            normalizedName,
+            normalizedSku,
+            normalizedDescription,
             price,
             stockQuantity,
             categoryId,
@@ -99,10 +120,17 @@ public sealed class Product
         int categoryId,
         DateTime updatedAtUtc)
     {
-        Validate(name, Sku, price, stockQuantity, categoryId);
+        var normalizedName = NormalizeRequiredText(
+            name,
+            MaxNameLength,
+            "Product name is required.",
+            "Product name");
+        var normalizedDescription = NormalizeDescription(description);
 
-        Name = name;
-        Description = description;
+        Validate(price, stockQuantity, categoryId);
+
+        Name = normalizedName;
+        Description = normalizedDescription;
         Price = price;
         StockQuantity = stockQuantity;
         CategoryId = categoryId;
@@ -121,24 +149,14 @@ public sealed class Product
         UpdatedAtUtc = updatedAtUtc;
     }
 
+    // Kiểm tra các rule số và khóa ngoại nội bộ. Rule chuỗi được kiểm tra trong các method normalize
+    // để Entity không bao giờ giữ dữ liệu có khoảng trắng đầu/cuối hoặc Description rỗng.
     private static void Validate(
-        string name,
-        string sku,
         decimal price,
         int stockQuantity,
         int categoryId)
     {
         // Các điều kiện này là invariant - lớp phòng thủ cuối cùng trước khi Entity nhận state mới.
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            throw new DomainException("Product name is required.");
-        }
-
-        if (string.IsNullOrWhiteSpace(sku))
-        {
-            throw new DomainException("Product SKU is required.");
-        }
-
         if (price <= 0)
         {
             throw new DomainException("Product price must be greater than zero.");
@@ -153,5 +171,46 @@ public sealed class Product
         {
             throw new DomainException("A product must belong to a category.");
         }
+    }
+
+    // Chuẩn hóa field bắt buộc: chặn null/whitespace, trim và áp dụng giới hạn domain.
+    // `fieldLabel` chỉ phục vụ thông điệp lỗi; nó không xuất hiện trong database schema.
+    private static string NormalizeRequiredText(
+        string? value,
+        int maxLength,
+        string requiredMessage,
+        string fieldLabel)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new DomainException(requiredMessage);
+        }
+
+        var trimmedValue = value.Trim();
+
+        if (trimmedValue.Length > maxLength)
+        {
+            throw new DomainException(
+                $"{fieldLabel} cannot be longer than {maxLength} characters.");
+        }
+
+        return trimmedValue;
+    }
+
+    // Description không bắt buộc: null, "" hoặc chỉ khoảng trắng cùng được lưu thành null.
+    // Nhờ vậy query/API không cần phân biệt hai trạng thái rỗng mang cùng ý nghĩa.
+    private static string? NormalizeDescription(string? description)
+    {
+        var trimmedDescription = string.IsNullOrWhiteSpace(description)
+            ? null
+            : description.Trim();
+
+        if (trimmedDescription is not null && trimmedDescription.Length > MaxDescriptionLength)
+        {
+            throw new DomainException(
+                $"Product description cannot be longer than {MaxDescriptionLength} characters.");
+        }
+
+        return trimmedDescription;
     }
 }

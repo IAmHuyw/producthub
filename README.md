@@ -29,6 +29,35 @@ HTTP request
 
 Các lỗi nghiệp vụ (`NotFoundException`, `ConflictException`, `BusinessRuleException`) được `GlobalExceptionHandler` ở API đổi sang chuẩn `ProblemDetails` HTTP 404/409. Do đó controller chỉ xử lý response thành công.
 
+## Checkpoint 01 - Gia cố Catalog hiện tại
+
+Checkpoint đầu tiên được triển khai trước Auth, Variant và Order để giữ phạm vi thay đổi nhỏ, dễ review:
+
+- `Category` lưu thêm `NormalizedName` (`trim + uppercase invariant`) và unique index. Vì vậy `Laptop`, ` laptop ` và `LAPTOP` là một danh mục.
+- `Product`/`Category` tự trim, kiểm tra độ dài và invariant ngay trong Domain Entity; API và EF Core dùng chung các hằng số độ dài đó.
+- PostgreSQL có thêm `CHECK` cho tên/SKU không rỗng, giá lớn hơn 0 và tồn kho không âm. Đây là hàng rào khi import script ghi thẳng vào database.
+- Có endpoint `GET /health/live`; endpoint này chỉ kiểm tra process API còn sống, chưa kiểm tra kết nối PostgreSQL.
+
+Luồng tạo/sửa Category sau checkpoint:
+
+```text
+Request Name
+  → Category.NormalizeName (trim + validate)
+  → Application kiểm tra ExistsByNormalizedNameAsync để trả lỗi rõ
+  → Category.Create/Rename cập nhật Name + NormalizedName
+  → EF Core SaveChanges
+  → PostgreSQL unique index NormalizedName chống race condition
+```
+
+Trước khi chạy migration mới trên database có dữ liệu, kiểm tra duplicate không phân biệt hoa/thường. Nếu query trả về dòng nào, hãy gộp/đổi tên dữ liệu đó trước; migration sẽ chủ động dừng để không tạo index nửa chừng.
+
+```sql
+SELECT upper(btrim("Name")) AS normalized_name, COUNT(*)
+FROM categories
+GROUP BY upper(btrim("Name"))
+HAVING COUNT(*) > 1;
+```
+
 ## Chạy local
 
 1. Khởi động PostgreSQL:
@@ -64,3 +93,11 @@ dotnet ef database update \
 ```
 
 Không sửa migration đã được dùng trên database chung/production. Hãy đổi configuration rồi tạo migration mới.
+
+Migration `20260812000000_AddCatalogIntegrity` là migration của Checkpoint 01. Sau khi chạy `database update`, khởi động API và gọi:
+
+```http
+GET /health/live
+```
+
+Kết quả `200 Healthy` cho biết process API hoạt động. Nó không thay thế bài kiểm tra endpoint Catalog hoặc kết nối PostgreSQL; readiness check database sẽ được thêm ở phần Docker/deployment.

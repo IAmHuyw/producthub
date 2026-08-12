@@ -1,5 +1,7 @@
 // Các attribute [Required], [StringLength] được [ApiController] dùng để tự trả HTTP 400 khi request body sai.
 using System.ComponentModel.DataAnnotations;
+// Dùng constant từ Domain để API validation không lệch với Entity và database mapping.
+using ProductHub.Domain.Entities;
 
 namespace ProductHub.Api.Contracts.Categories;
 
@@ -9,6 +11,6 @@ public sealed class CreateCategoryRequest
 {
     // Required chặn null/""; StringLength giới hạn input từ client trước khi gọi use case.
     [Required]
-    [StringLength(100, MinimumLength = 2)]
+    [StringLength(Category.MaxNameLength, MinimumLength = 2)]
     public string Name { get; init; } = string.Empty;
 }

@@ -19,11 +19,11 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         // Các max length phải khớp DataAnnotations/API để database không nhận dữ liệu vượt giới hạn từ nguồn khác.
         builder.Property(x => x.Name)
-            .HasMaxLength(120)
+            .HasMaxLength(Product.MaxNameLength)
             .IsRequired();
 
         builder.Property(x => x.Sku)
-            .HasMaxLength(50)
+            .HasMaxLength(Product.MaxSkuLength)
             .IsRequired();
 
         // SKU có unique index. Application check trước để message dễ hiểu; DB giữ tính đúng khi có race condition.
@@ -31,7 +31,7 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .IsUnique();
 
         builder.Property(x => x.Description)
-            .HasMaxLength(1000);
+            .HasMaxLength(Product.MaxDescriptionLength);
 
         // numeric(18,2) phù hợp tiền tệ cơ bản và tránh sai số của float/double.
         builder.Property(x => x.Price)
@@ -43,5 +43,15 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .WithMany(x => x.Products)
             .HasForeignKey(x => x.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // CHECK là lớp bảo vệ khi dữ liệu được import/ghi trực tiếp mà không đi qua Domain Entity.
+        // Các rule này phải đồng nhất với Product.Validate để lỗi không chỉ được phát hiện khi đọc dữ liệu.
+        builder.ToTable(table =>
+        {
+            table.HasCheckConstraint("CK_products_price_positive", "\"Price\" > 0");
+            table.HasCheckConstraint("CK_products_stock_quantity_non_negative", "\"StockQuantity\" >= 0");
+            table.HasCheckConstraint("CK_products_name_not_blank", "char_length(btrim(\"Name\")) > 0");
+            table.HasCheckConstraint("CK_products_sku_not_blank", "char_length(btrim(\"Sku\")) > 0");
+        });
     }
 }

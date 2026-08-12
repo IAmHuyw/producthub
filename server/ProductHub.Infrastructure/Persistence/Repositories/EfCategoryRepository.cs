@@ -32,16 +32,17 @@ public sealed class EfCategoryRepository(AppDbContext dbContext)
             cancellationToken);
     }
 
-    // Kiểm tra duplicate theo tên đã normalize. Query này được chạy trước Create/Update để trả lỗi dễ hiểu.
+    // Query theo cột NormalizedName đã được lưu sẵn, thay vì gọi UPPER(Name) trên từng row.
+    // Cách này để PostgreSQL dùng được unique index và đảm bảo quy tắc so sánh khớp database.
     // Database unique index vẫn cần thiết vì hai request có thể cùng vượt qua check này.
-    public Task<bool> ExistsByNameAsync(
+    public Task<bool> ExistsByNormalizedNameAsync(
         string normalizedName,
         int? excludingId,
         CancellationToken cancellationToken)
     {
         return dbContext.Categories.AnyAsync(
             x => (!excludingId.HasValue || x.Id != excludingId.Value) &&
-                 x.Name.ToUpper() == normalizedName,
+                 x.NormalizedName == normalizedName,
             cancellationToken);
     }
 

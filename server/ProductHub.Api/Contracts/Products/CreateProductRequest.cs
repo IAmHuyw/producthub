@@ -1,5 +1,7 @@
 // Data annotations được model binding của ASP.NET Core dùng để tạo ValidationProblemDetails HTTP 400.
 using System.ComponentModel.DataAnnotations;
+// Dùng constant Domain để các giới hạn API, Entity và schema cùng một nguồn sự thật.
+using ProductHub.Domain.Entities;
 
 namespace ProductHub.Api.Contracts.Products;
 
@@ -9,16 +11,16 @@ public sealed class CreateProductRequest
 {
     // Tên có độ dài 2-120. Application/Domain còn trim và chặn chuỗi chỉ có khoảng trắng.
     [Required]
-    [StringLength(120, MinimumLength = 2)]
+    [StringLength(Product.MaxNameLength, MinimumLength = 2)]
     public string Name { get; init; } = string.Empty;
 
     // SKU là mã định danh nghiệp vụ, bắt buộc và tối đa 50 ký tự.
     [Required]
-    [StringLength(50, MinimumLength = 2)]
+    [StringLength(Product.MaxSkuLength, MinimumLength = 2)]
     public string Sku { get; init; } = string.Empty;
 
     // Description optional; Application chuyển chuỗi rỗng sau trim thành null.
-    [StringLength(1000)]
+    [StringLength(Product.MaxDescriptionLength)]
     public string? Description { get; init; }
 
     // decimal phù hợp tiền tệ hơn double; Range chặn giá <= 0 ngay tại API.

@@ -16,6 +16,11 @@ builder.Services.AddControllers();
 // Sinh OpenAPI document; chỉ map endpoint document trong Development ở phía dưới.
 builder.Services.AddOpenApi();
 
+// Liveness chỉ xác nhận tiến trình API còn trả lời được. Endpoint này không kiểm tra database,
+// vì mục tiêu của nó là để Docker/load balancer biết có cần khởi động lại process hay không.
+// Health check PostgreSQL (readiness) sẽ được thêm cùng phần Docker/deployment khi có package phù hợp.
+builder.Services.AddHealthChecks();
+
 // Đăng ký lỗi tập trung để NotFound/Conflict/Domain exception có ProblemDetails thống nhất.
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
@@ -59,6 +64,13 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.UseCors("ReactClient");
+
+// Không cần authentication để Docker/CI gọi endpoint này. Predicate false đảm bảo liveness
+// không bị chuyển thành readiness khi sau này hệ thống bổ sung các health check phụ thuộc database.
+app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = _ => false
+});
 app.MapControllers();
 
 app.Run();

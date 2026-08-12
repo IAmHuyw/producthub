@@ -13,9 +13,9 @@ public interface ICategoryRepository
     // Lấy Entity để use case có thể đọc hoặc đổi trạng thái. Trả null khi không tìm thấy.
     Task<Category?> GetByIdAsync(int id, CancellationToken cancellationToken);
 
-    // Kiểm tra tên đã tồn tại chưa. excludingId dùng khi update để không tự coi chính record đang sửa là trùng.
-    // normalizedName đã được Application chuẩn hoá bằng ToUpperInvariant trước khi truyền vào.
-    Task<bool> ExistsByNameAsync(
+    // Kiểm tra khóa NormalizedName đã tồn tại chưa. excludingId dùng khi update để không tự coi record đang sửa là trùng.
+    // NormalizedName là field được Entity Category tính bằng trim + ToUpperInvariant và có unique index trong database.
+    Task<bool> ExistsByNormalizedNameAsync(
         string normalizedName,
         int? excludingId,
         CancellationToken cancellationToken);

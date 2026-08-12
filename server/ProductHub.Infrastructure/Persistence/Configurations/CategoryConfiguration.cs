@@ -21,11 +21,22 @@ public sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
 
         // Name bắt buộc, tối đa 100 ký tự; đây là hàng rào database bổ sung cho Domain/API validation.
         builder.Property(x => x.Name)
-            .HasMaxLength(100)
+            .HasMaxLength(Category.MaxNameLength)
             .IsRequired();
 
-        // Unique index chặn hai request đồng thời cùng tạo đúng một tên giống hệt nhau.
-        builder.HasIndex(x => x.Name)
+        // Lưu sẵn tên chuẩn hóa để PostgreSQL đảm bảo unique không phân biệt hoa/thường.
+        // Ví dụ: "Laptop", " laptop " và "LAPTOP" đều có NormalizedName là "LAPTOP".
+        builder.Property(x => x.NormalizedName)
+            .HasMaxLength(Category.MaxNameLength)
+            .IsRequired();
+
+        // Unique index này là hàng rào cuối cùng khi hai request chạy đồng thời qua duplicate check ở Application.
+        builder.HasIndex(x => x.NormalizedName)
             .IsUnique();
+
+        // CHECK ngăn dữ liệu rỗng/chỉ có khoảng trắng nếu ai đó ghi thẳng database, bỏ qua Domain/API.
+        builder.ToTable(table => table.HasCheckConstraint(
+            "CK_categories_name_not_blank",
+            "char_length(btrim(\"Name\")) > 0"));
     }
 }

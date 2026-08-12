@@ -1,5 +1,7 @@
 // Attribute validation cho request body trước khi controller gọi Application service.
 using System.ComponentModel.DataAnnotations;
+// Lấy giới hạn từ Domain để tránh việc PUT có rule khác POST hoặc database.
+using ProductHub.Domain.Entities;
 
 namespace ProductHub.Api.Contracts.Products;
 
@@ -9,10 +11,10 @@ public sealed class UpdateProductRequest
 {
     // Các constraint này cần khớp schema trong ProductConfiguration.
     [Required]
-    [StringLength(120, MinimumLength = 2)]
+    [StringLength(Product.MaxNameLength, MinimumLength = 2)]
     public string Name { get; init; } = string.Empty;
 
-    [StringLength(1000)]
+    [StringLength(Product.MaxDescriptionLength)]
     public string? Description { get; init; }
 
     [Range(typeof(decimal), "0.01", "999999999")]

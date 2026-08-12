@@ -50,12 +50,12 @@ public sealed class CategoryService(
         CreateCategoryCommand command,
         CancellationToken cancellationToken)
     {
-        // Trim trước để " Laptop " và "Laptop" được xem là cùng dữ liệu nghiệp vụ.
-        var name = NormalizeName(command.Name);
+        // Domain chuẩn hóa (trim + validate) để mọi loại caller dùng đúng một luật dữ liệu.
+        var name = Category.NormalizeName(command.Name);
 
-        // So sánh trên dạng uppercase invariant để không phân biệt hoa/thường ở tầng application.
-        if (await categories.ExistsByNameAsync(
-                NormalizeForComparison(name),
+        // Kiểm tra sớm để trả lỗi dễ hiểu; unique index NormalizedName vẫn xử lý race condition ở database.
+        if (await categories.ExistsByNormalizedNameAsync(
+                Category.NormalizeForComparison(name),
                 excludingId: null,
                 cancellationToken))
         {
@@ -86,11 +86,11 @@ public sealed class CategoryService(
             throw new NotFoundException("Category was not found.");
         }
 
-        var name = NormalizeName(command.Name);
+        var name = Category.NormalizeName(command.Name);
 
         // excludingId giúp chính Category đang update không bị coi là duplicate.
-        if (await categories.ExistsByNameAsync(
-                NormalizeForComparison(name),
+        if (await categories.ExistsByNormalizedNameAsync(
+                Category.NormalizeForComparison(name),
                 command.Id,
                 cancellationToken))
         {
@@ -131,11 +131,4 @@ public sealed class CategoryService(
     private static CategoryDto MapToDto(Category category)
         => new(category.Id, category.Name, category.CreatedAtUtc);
 
-    // Normalize tại Application để mọi caller (không chỉ HTTP API) đều có cùng hành vi trim input.
-    private static string NormalizeName(string? name)
-        => name?.Trim() ?? string.Empty;
-
-    // ToUpperInvariant không phụ thuộc culture của máy chạy (ví dụ lỗi chữ i ở Turkish locale).
-    private static string NormalizeForComparison(string value)
-        => value.ToUpperInvariant();
 }
